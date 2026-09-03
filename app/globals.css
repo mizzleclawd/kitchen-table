@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  .eyebrow { @apply text-xs font-bold uppercase tracking-[.16em] text-[#a44829]; }
+  label { @apply mt-5 block text-sm font-semibold text-[#574333]; }
+  input, textarea { @apply mt-2 block w-full rounded-xl border border-[#dcc8ae] bg-[#fffdf9] px-4 py-3 text-base font-normal outline-none transition focus:border-[#c85d37] focus:ring-2 focus:ring-[#c85d37]/15; }
+  textarea { @apply min-h-32 resize-y; }
+  .primary { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#c85d37] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#c85d37]/20 transition hover:bg-[#ad4d2c] disabled:cursor-not-allowed disabled:opacity-50; }
+  .secondary { @apply inline-flex items-center justify-center rounded-xl border border-white/25 px-5 py-3 font-semibold text-white transition hover:bg-white/10 disabled:opacity-40; }
+  .approved, .draft { @apply rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .approved { @apply bg-[#e0eee0] text-[#315c43]; }
+  .draft { @apply bg-[#fff1d8] text-[#92501f]; }
+  .modal { @apply fixed inset-0 z-50 grid place-items-center bg-[#2a221b]/45 p-4 backdrop-blur-sm; }
+  .modal-card { @apply max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] bg-[#fbf5ea] p-7 shadow-2xl; }
+  .back { @apply inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-70; }
+}
