@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kitchen Table",
-  description: "Built live via the Convex quickstart bootstrap.",
+  description: "A private family cookbook that keeps the recipe and the voice.",
 };
 
 export default function RootLayout({

@@ -1,8 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const recipeStatus = v.union(v.literal("draft"), v.literal("approved"));
-
 export const list = query({
   args: {},
   returns: v.any(),

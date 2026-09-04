@@ -40,3 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .quickstart-logs
+
+# AI-tool bootstrap residue; it is not Kitchen Table source.
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md
+skills-lock.json
+.quickstart-runbook.md
+convex/_generated/ai/

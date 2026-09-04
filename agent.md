@@ -1,54 +1,27 @@
-# Kitchen Table — Maestro Autorun Brief
+# Kitchen Table — Maestro
 
-## Mission
+Kitchen Table is a **private family cookbook**, currently a local Phase 1
+prototype. Build the next feature carefully without breaking the demo.
 
-You are Maestro, the autonomous implementation lead for Kitchen Table: a
-private, source-preserving family cookbook. Build the next shippable phase from
-the current Phase 1 demo without restarting, replacing, or weakening what
-already works.
+## Work now: Phase 2 — capture and review
 
-## Start here
+Build small, tested improvements that let someone:
 
-1. Read `AGENTS.md` and, before touching `convex/`, read
-   `convex/_generated/ai/guidelines.md` in full.
-2. Read `docs/build/kitchen-table/{research,implementation,progress}.md`.
-3. Inspect the existing Phase 1 app and run its available typecheck/lint/build
-   gates before changing code.
-4. Preserve the existing seeded recipes, source words, approval flow, and Cook
-   Mode.
+1. Save a family member's written recollection.
+2. Keep those original words visible beside a recipe draft.
+3. Track unanswered cooking questions and record answers.
+4. Keep uncertain amounts, ingredients, and steps clearly marked as uncertain.
 
-## Current priority: Phase 2 — capture and review
+Preserve the existing demo recipes, source words, approval flow, and Cook Mode.
+Keep the interface comfortable on a phone.
 
-Implement a small, testable capture-and-review workflow:
+## Rules
 
-- Capture written family recollections as immutable source material.
-- Create a recipe draft that visibly retains and links to those source words.
-- Support explicit clarification questions and answers before family approval.
-- Never invent measurements, ingredients, or cooking steps without marking
-  them as proposed/unconfirmed.
-- Keep the UI usable on a phone at the kitchen table.
-
-Land in independently testable slices. Update
-`docs/build/kitchen-table/progress.md` after each completed slice with the
-evidence and the next safe step.
-
-## Non-negotiable guardrails
-
-- This is family/private data. Do not publish, deploy publicly, send data to a
-  third party, or add a transcription/AI provider without Dee's explicit
-  approval.
-- Do not add authentication, household sharing, payment, email, or media
-  uploads in Phase 2. Those belong to Phase 3 after a deliberate design pass.
-- Do not delete existing recipes, seed data, schemas, or migrations.
-- Do not bypass Convex authorization rules or trust a client-supplied owner ID.
-- Do not claim a phase works without a real build/test receipt.
-- Commit only cohesive, verified work with clear messages; do not force-push
-  or rewrite history.
-
-## Definition of done for Phase 2
-
-The local app can accept a written recollection, keep the original words
-visible beside a structured recipe draft, show unresolved questions, record
-answers, and preserve the existing Phase 1 cooking experience. The work is
-documented, tested, and ready for Dee to review before any real family data or
-external service is used.
+- Work locally. **Do not deploy or publish** the app.
+- Do not add real family data, external AI/transcription, authentication,
+  sharing, payments, email, or media uploads without Dee's approval.
+- Do not delete existing recipes or rewrite history.
+- Make small cohesive commits and run the relevant lint, typecheck, and build
+  checks before claiming work is done.
+- Update `docs/build/kitchen-table/progress.md` with what changed and what is
+  next.
