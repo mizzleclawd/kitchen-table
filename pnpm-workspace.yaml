@@ -1,3 +1,5 @@
 allowBuilds:
-  esbuild: set this to true or false
-  unrs-resolver: set this to true or false
+  # Next.js requires these locked transitive packages to build its production
+  # bundle. Keep the allowlist explicit rather than approving every package.
+  esbuild: true
+  unrs-resolver: true

@@ -17,7 +17,9 @@ Keep the interface comfortable on a phone.
 
 ## Rules
 
-- Work locally. **Do not deploy or publish** the app.
+- The public hackathon demo may be deployed and published with **demo data only**.
+  Do not deploy or publish real family recordings, recipes, names, or other
+  private family data.
 - Do not add real family data, external AI/transcription, authentication,
   sharing, payments, email, or media uploads without Dee's approval.
 - Do not delete existing recipes or rewrite history.
