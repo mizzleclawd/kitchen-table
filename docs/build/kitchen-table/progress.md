@@ -8,7 +8,9 @@ shows ingredients and unresolved questions; Cubed Steak has large-step Cook
 Mode. Seeded the initial demo with Grandma's Chess Squares and Cubed Steak,
 Gravy & Rice.
 
-Convex is a local anonymous deployment for this phase. This is intentional for
-the demo, but it is not suitable for uploading real family recordings or
-publishing. Phase 2 adds capture/transcription with source-grounded review;
-Phase 3 adds authentication and household ownership before any public launch.
+The prototype has no authentication. It is suitable only for seeded demo data
+on a local development deployment; it must not be hosted publicly or contain
+real family material. Phase 2 adds written capture and source-grounded review.
+Phase 3 adds authentication and household ownership before any hosted or
+real-family use. Audio capture, transcription, and AI assistance require a
+separate approved design after that.

@@ -27,10 +27,9 @@ question, never invent a measurement.
 
 ## Privacy boundary
 
-The first local demo has no authentication because the generated quickstart is
-local-only. Before any public or real-family deployment, add authentication and
-server-side household membership checks. Do not upload personal family media to
-a public deployment without that phase.
+The prototype has no authentication and is local-demo-only. Before any hosted
+or real-family use, add authentication and server-side household membership
+checks. Do not upload personal family media until that phase is complete.
 
 ## Recommended first release
 
