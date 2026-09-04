@@ -1,52 +1,71 @@
-# Welcome to your Convex + Next.js app
+# Kitchen Table
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+**A private family cookbook that keeps the recipe and the voice behind it.**
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+Kitchen Table preserves a relative's original words alongside a structured,
+cookable recipe. It is designed for the stories, pinches, and unresolved details
+that make a family recipe worth keeping.
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/) for building great looking accessible UI fast
+## Current status
 
-## Get started
+**Phase 1 prototype — not deployed.**
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+This repository is private. There is currently no public URL, hosted web app, or
+authentication layer. Do not use it for real family recordings or private family
+data yet.
 
+What works locally:
+
+- Browse and seed demo recipes
+- Capture source words with a recipe draft
+- Preserve source words on the recipe detail page
+- Track unresolved questions
+- Mark a draft family-approved
+- Cook Mode for step-by-step use
+
+## Roadmap
+
+1. **Phase 2 — capture and review:** source-linked written recollections,
+   clarification answers, and structured drafts without inventing details.
+2. **Phase 3 — private sharing:** authentication, household ownership, and
+   private media storage.
+3. **Deployment:** only after Phase 3 provides appropriate access controls for
+   family material.
+
+Progress and implementation notes live in
+[`docs/build/kitchen-table/`](docs/build/kitchen-table/).
+
+## Local development
+
+### Requirements
+
+- Node.js 20+
+- pnpm
+- A Convex development deployment
+
+### Run it
+
+```bash
+pnpm install
+pnpm convex dev
 ```
-npm install
-npm run dev
+
+In a second terminal:
+
+```bash
+pnpm dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+Then open the local URL printed by Next.js (normally `http://localhost:3000`).
 
-```
-npm create convex@latest -- -t nextjs-shadcn
-```
+Set the required Convex values in `.env.local`; do not commit that file.
 
-## Learn more
+## Safety and data handling
 
-To learn more about developing your project with Convex, check out:
+- The original source words are the record; structured fields must not replace
+  or silently rewrite them.
+- Do not invent measurements, timings, ingredients, or family attribution.
+- Do not publish, enable third-party transcription/AI, or add real family data
+  without the owner's explicit approval.
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-
-## Join the community
-
-Join thousands of developers building full-stack apps with Convex:
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-# Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+For autonomous implementation boundaries, see [`agent.md`](agent.md).
