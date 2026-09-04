@@ -10,6 +10,8 @@ that make a family recipe worth keeping.
 
 **Public demo — demo data only.**
 
+**Demo:** <https://mizzleclawd.github.io/kitchen-table/>
+
 Kitchen Table is a public hackathon prototype. It deliberately contains only
 fictional/demo recipe text and has no authentication or household privacy model.
 Do **not** enter real family recordings, recipes, names, or other private data.

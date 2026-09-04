@@ -20,8 +20,7 @@ The production deployment owns the schema, indexes, and demo data.
 - Production functions: `recipes:list`, `recipes:get`, `recipes:createDraft`,
   `recipes:approve`, and `recipes:seedDemo`
 - Seeded demo data: *Grandma's Chess Squares* and *Cubed Steak, Gravy & Rice*
-- Public web demo: see the repository homepage / README once the deployment URL
-  is recorded.
+- Public web demo: <https://mizzleclawd.github.io/kitchen-table/>
 
 ## Reproduce locally
 
