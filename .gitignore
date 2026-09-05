@@ -49,3 +49,6 @@ CLAUDE.md
 skills-lock.json
 .quickstart-runbook.md
 convex/_generated/ai/
+
+# Local Netlify folder
+.netlify
