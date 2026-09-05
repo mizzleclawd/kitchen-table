@@ -1,0 +1,11 @@
+[build]
+  command = "pnpm build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "11"
+
+# Set NEXT_PUBLIC_CONVEX_URL in the Netlify site's production environment.
+# It must be present at build time because Next.js embeds public variables
+# into the browser bundle.

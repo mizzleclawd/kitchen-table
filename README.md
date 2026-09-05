@@ -10,7 +10,7 @@ that make a family recipe worth keeping.
 
 **Public demo — demo data only.**
 
-**Demo:** <https://mizzleclawd.github.io/kitchen-table/>
+**Demo:** deployed from Netlify (the site URL is configured in Netlify).
 
 Kitchen Table is a public hackathon prototype. It deliberately contains only
 fictional/demo recipe text and has no authentication or household privacy model.

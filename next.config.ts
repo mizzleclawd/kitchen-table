@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // GitHub Pages serves project sites below /<repository>. Keep local and
-  // other hosts root-based, while producing correct asset links in Actions.
-  basePath: process.env.GITHUB_ACTIONS ? "/kitchen-table" : undefined,
+  // Netlify serves this app at the site root. Keep local builds root-based too
+  // so the deployed asset paths match the public runtime.
   output: "export",
   outputFileTracingRoot: process.cwd(),
 };
