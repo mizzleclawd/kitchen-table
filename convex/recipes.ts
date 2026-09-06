@@ -201,42 +201,37 @@ export const seedDemo = mutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const existing = await ctx.db
-      .query("recipes")
-      .withIndex("by_title", (q) => q.eq("title", "Grandma's Chess Squares"))
-      .unique();
-    if (existing) return null;
+    const [chessSquares, steak] = await Promise.all([
+      ctx.db
+        .query("recipes")
+        .withIndex("by_title", (q) => q.eq("title", "Grandma's Chess Squares"))
+        .unique(),
+      ctx.db
+        .query("recipes")
+        .withIndex("by_title", (q) =>
+          q.eq("title", "Cubed Steak, Gravy & Rice"),
+        )
+        .unique(),
+    ]);
 
-    const chessSquaresId = await ctx.db.insert("recipes", {
-      title: "Grandma's Chess Squares",
-      story: "A family favorite worth getting in her own words.",
-      sourceText:
-        "Grandma explained that the chocolate layer should stay soft and the top should be mixed until it comes together. Confirm the exact oven temperature and how long she bakes it.",
-      status: "draft",
-      emoji: "🍫",
-      cookTimeMinutes: 45,
-      createdAt: Date.now(),
-    });
-    const steakId = await ctx.db.insert("recipes", {
-      title: "Cubed Steak, Gravy & Rice",
-      story:
-        "Tonight's supper — the kind you learn by standing beside the stove.",
-      sourceText:
-        "Season and flour the cubed steak, brown it in a skillet, then make gravy from the pan. Serve it over rice. The key details are in the way the gravy looks, not a perfect measuring cup.",
-      status: "approved",
-      emoji: "🍲",
-      cookTimeMinutes: 35,
-      createdAt: Date.now() - 1,
-    });
-
-    for (const [recipeId, items] of [
-      [chessSquaresId, ["Butter", "Cocoa", "Sugar", "Eggs", "Flour"]],
-      [
-        steakId,
-        ["Cubed steak", "Flour", "Seasoning", "Oil", "Broth or milk", "Rice"],
-      ],
-    ] as const) {
-      for (const [sortOrder, name] of items.entries()) {
+    if (!chessSquares) {
+      const recipeId = await ctx.db.insert("recipes", {
+        title: "Grandma's Chess Squares",
+        story: "A family favorite worth getting in her own words.",
+        sourceText:
+          "Grandma explained that the chocolate layer should stay soft and the top should be mixed until it comes together. Confirm the exact oven temperature and how long she bakes it.",
+        status: "draft",
+        emoji: "🍫",
+        cookTimeMinutes: 45,
+        createdAt: Date.now(),
+      });
+      for (const [sortOrder, name] of [
+        "Butter",
+        "Cocoa",
+        "Sugar",
+        "Eggs",
+        "Flour",
+      ].entries()) {
         await ctx.db.insert("ingredients", {
           recipeId,
           name,
@@ -244,28 +239,56 @@ export const seedDemo = mutation({
           sortOrder,
         });
       }
-    }
-    const steps = [
-      "Season the cubed steak and dust both sides lightly with flour.",
-      "Brown the steak in a hot skillet. Work in batches so it sears instead of steams.",
-      "Build gravy from the browned bits in the pan, stirring until it looks smooth.",
-      "Return the steak to the gravy and simmer gently until tender. Serve over rice.",
-    ];
-    for (const [sortOrder, body] of steps.entries()) {
-      await ctx.db.insert("steps", {
-        recipeId: steakId,
-        body,
-        minutes: sortOrder === 3 ? 15 : null,
-        sortOrder,
+      await ctx.db.insert("questions", {
+        recipeId,
+        prompt:
+          "Grandma, what oven temperature and bake time do you use for Chess Squares?",
+        answer: null,
+        resolved: false,
       });
     }
-    await ctx.db.insert("questions", {
-      recipeId: chessSquaresId,
-      prompt:
-        "Grandma, what oven temperature and bake time do you use for Chess Squares?",
-      answer: null,
-      resolved: false,
-    });
+
+    if (!steak) {
+      const recipeId = await ctx.db.insert("recipes", {
+        title: "Cubed Steak, Gravy & Rice",
+        story:
+          "Tonight's supper — the kind you learn by standing beside the stove.",
+        sourceText:
+          "Season and flour the cubed steak, brown it in a skillet, then make gravy from the pan. Serve it over rice. The key details are in the way the gravy looks, not a perfect measuring cup.",
+        status: "approved",
+        emoji: "🍲",
+        cookTimeMinutes: 35,
+        createdAt: Date.now() - 1,
+      });
+      for (const [sortOrder, name] of [
+        "Cubed steak",
+        "Flour",
+        "Seasoning",
+        "Oil",
+        "Broth or milk",
+        "Rice",
+      ].entries()) {
+        await ctx.db.insert("ingredients", {
+          recipeId,
+          name,
+          amount: null,
+          sortOrder,
+        });
+      }
+      for (const [sortOrder, body] of [
+        "Season the cubed steak and dust both sides lightly with flour.",
+        "Brown the steak in a hot skillet. Work in batches so it sears instead of steams.",
+        "Build gravy from the browned bits in the pan, stirring until it looks smooth.",
+        "Return the steak to the gravy and simmer gently until tender. Serve over rice.",
+      ].entries()) {
+        await ctx.db.insert("steps", {
+          recipeId,
+          body,
+          minutes: sortOrder === 3 ? 15 : null,
+          sortOrder,
+        });
+      }
+    }
     return null;
   },
 });

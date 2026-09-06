@@ -42,9 +42,17 @@ export default function Home() {
   const [capture, setCapture] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const featuredRecipe = recipes?.find(
+    (recipe) => recipe.title === "Cubed Steak, Gravy & Rice",
+  );
+  const needsSeed =
+    recipes !== undefined &&
+    !["Grandma's Chess Squares", "Cubed Steak, Gravy & Rice"].every((title) =>
+      recipes.some((recipe) => recipe.title === title),
+    );
   useEffect(() => {
-    if (recipes?.length === 0) void seed();
-  }, [recipes?.length, seed]);
+    if (needsSeed) void seed();
+  }, [needsSeed, seed]);
   if (id) return <DetailView recipeId={id} onBack={() => setId(null)} />;
   async function submit(values: RecipeCaptureFormValues) {
     setSubmitting(true);
@@ -106,13 +114,13 @@ export default function Home() {
               Tonight at the stove
             </p>
             <p className="mt-3 font-serif text-3xl">
-              Cubed Steak,
-              <br />
-              Gravy & Rice
+              {featuredRecipe?.title ?? "Restoring tonight's recipe…"}
             </p>
             <p className="mt-6 flex items-center gap-2 text-sm text-[#dcecdc]">
               <Clock3 size={17} />
-              35 minutes · served with a story
+              {featuredRecipe?.cookTimeMinutes
+                ? `${featuredRecipe.cookTimeMinutes} minutes · served with a story`
+                : "The family book is restoring this recipe."}
             </p>
           </div>
         </section>
