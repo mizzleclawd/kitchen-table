@@ -205,13 +205,13 @@ export const seedDemo = mutation({
       ctx.db
         .query("recipes")
         .withIndex("by_title", (q) => q.eq("title", "Grandma's Chess Squares"))
-        .unique(),
+        .first(),
       ctx.db
         .query("recipes")
         .withIndex("by_title", (q) =>
           q.eq("title", "Cubed Steak, Gravy & Rice"),
         )
-        .unique(),
+        .first(),
     ]);
 
     if (!chessSquares) {
