@@ -12,6 +12,9 @@ that make a family recipe worth keeping.
 
 **Demo:** <https://kitchen-table-130.netlify.app/>
 
+**Hosting policy:** Netlify is the canonical production and hackathon demo
+host. GitHub Pages must not be enabled or used for Kitchen Table.
+
 Kitchen Table is a public hackathon prototype. It deliberately contains only
 fictional/demo recipe text and has no authentication or household privacy model.
 Do **not** enter real family recordings, recipes, names, or other private data.
