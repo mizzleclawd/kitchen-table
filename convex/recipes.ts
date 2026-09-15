@@ -155,7 +155,41 @@ export const approve = mutation({
   handler: async (ctx, args) => {
     const recipe = await ctx.db.get(args.recipeId);
     if (!recipe) throw new Error("Recipe not found.");
+    const unresolvedQuestion = await ctx.db
+      .query("questions")
+      .withIndex("by_recipe_id_and_resolved", (q) =>
+        q.eq("recipeId", args.recipeId).eq("resolved", false),
+      )
+      .first();
+    if (unresolvedQuestion) {
+      throw new Error(
+        "Answer every family question before approving this recipe.",
+      );
+    }
     await ctx.db.patch(args.recipeId, { status: "approved" });
+    return null;
+  },
+});
+
+export const answerQuestion = mutation({
+  args: {
+    questionId: v.id("questions"),
+    answer: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const question = await ctx.db.get(args.questionId);
+    if (!question) throw new Error("Question not found.");
+
+    const answer = args.answer.trim();
+    if (!answer) throw new Error("Add the family answer before saving.");
+    if (answer.length > 1_000)
+      throw new Error("Keep the family answer under 1,000 characters.");
+
+    await ctx.db.patch(args.questionId, {
+      answer,
+      resolved: true,
+    });
     return null;
   },
 });

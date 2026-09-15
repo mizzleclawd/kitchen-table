@@ -25,3 +25,16 @@ and answer a question before approving it.
 
 **Verify:** A signed-in household member can see their cookbook; a different
 account cannot read it by guessing an ID.
+
+## Phase 2a — Close the family clarification loop
+
+**Objective:** Let a family member answer every open clarification and prevent
+approval until the recipe has no unresolved questions.
+
+**Files:** `convex/recipes.ts`, `app/page.tsx`,
+`components/QuestionAnswerForm.tsx`, and the Kitchen Table build notes.
+
+**Verify:** Open Grandma's Chess Squares, enter an answer to the missing
+temperature/time question, save it, and see the answer preserved. Before that
+answer is saved, the approval control explains why approval is blocked; after
+the final answer, the recipe can be marked family-approved.
