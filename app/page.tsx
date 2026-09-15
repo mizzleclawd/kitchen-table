@@ -26,6 +26,7 @@ type Recipe = {
   story: string;
   sourceText: string;
   status: "draft" | "approved";
+  extractionStatus?: "pending" | "complete";
   emoji: string;
   cookTimeMinutes: number | null;
 };
@@ -297,7 +298,11 @@ function DetailView({
     );
   }
   const recipe = data.recipe;
-  const reading = !data.steps.length;
+  const reading =
+    recipe.extractionStatus === "pending" ||
+    (recipe.extractionStatus === undefined &&
+      !data.steps.length &&
+      !data.questions.length);
   const openQuestions = data.questions.filter((question) => !question.resolved);
   const resolvedQuestions = data.questions.filter(
     (question) => question.resolved,
@@ -355,7 +360,12 @@ function DetailView({
               </button>
             )}
             {recipe.status === "draft" &&
-              (openQuestions.length ? (
+              (reading ? (
+                <p className="mt-4 rounded-xl bg-white/10 p-4 text-sm leading-6 text-[#dcecdc]">
+                  Family approval will unlock after Kitchen Table finishes
+                  reviewing the original words.
+                </p>
+              ) : openQuestions.length ? (
                 <p className="mt-4 rounded-xl bg-white/10 p-4 text-sm leading-6 text-[#dcecdc]">
                   Answer{" "}
                   {openQuestions.length === 1

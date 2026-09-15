@@ -1,6 +1,6 @@
 import { convexTest } from "convex-test";
 import { describe, expect, it } from "vitest";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import schema from "./schema";
 
 declare global {
@@ -19,6 +19,7 @@ async function createRecipeWithQuestion() {
       story: "The version the family remembers.",
       sourceText: "Bake it until the top looks right.",
       status: "draft",
+      extractionStatus: "complete",
       emoji: "🍫",
       cookTimeMinutes: null,
       createdAt: Date.now(),
@@ -35,6 +36,52 @@ async function createRecipeWithQuestion() {
 }
 
 describe("family clarification review", () => {
+  it("blocks approval until extraction finishes and creates its questions", async () => {
+    const t = convexTest(schema, modules);
+    const recipeId = await t.run((ctx) =>
+      ctx.db.insert("recipes", {
+        title: "Grandma's Biscuits",
+        story: "Captured while cooking together.",
+        sourceText: "Mix it until it feels right, then bake it.",
+        status: "draft",
+        extractionStatus: "pending",
+        emoji: "🍞",
+        cookTimeMinutes: null,
+        createdAt: Date.now(),
+      }),
+    );
+
+    await expect(t.mutation(api.recipes.approve, { recipeId })).rejects.toThrow(
+      "finishes reviewing",
+    );
+
+    await t.mutation(internal.recipes.applyExtraction, {
+      recipeId,
+      ingredients: [],
+      steps: [{ body: "Mix it until it feels right, then bake it." }],
+      questions: [{ prompt: "How hot is the oven?" }],
+    });
+
+    await expect(t.mutation(api.recipes.approve, { recipeId })).rejects.toThrow(
+      "Answer every family question",
+    );
+
+    const { question, recipe } = await t.run(async (ctx) => ({
+      question: await ctx.db
+        .query("questions")
+        .withIndex("by_recipe_id_and_resolved", (q) =>
+          q.eq("recipeId", recipeId).eq("resolved", false),
+        )
+        .first(),
+      recipe: await ctx.db.get(recipeId),
+    }));
+    expect(recipe).toMatchObject({
+      extractionStatus: "complete",
+      status: "draft",
+    });
+    expect(question?.prompt).toBe("How hot is the oven?");
+  });
+
   it("blocks approval while a question is unresolved", async () => {
     const { ids, t } = await createRecipeWithQuestion();
 
@@ -75,5 +122,52 @@ describe("family clarification review", () => {
         answer: "   ",
       }),
     ).rejects.toThrow("Add the family answer");
+  });
+
+  it("does not overwrite an answer that was already resolved", async () => {
+    const { ids, t } = await createRecipeWithQuestion();
+
+    await t.mutation(api.recipes.answerQuestion, {
+      questionId: ids.questionId,
+      answer: "350 degrees for about 30 minutes.",
+    });
+    await expect(
+      t.mutation(api.recipes.answerQuestion, {
+        questionId: ids.questionId,
+        answer: "Actually, make it 400 degrees.",
+      }),
+    ).rejects.toThrow("already has an answer");
+
+    const question = await t.run((ctx) => ctx.db.get(ids.questionId));
+    expect(question?.answer).toBe("350 degrees for about 30 minutes.");
+  });
+
+  it("does not accept answers after the recipe is approved", async () => {
+    const t = convexTest(schema, modules);
+    const questionId = await t.run(async (ctx) => {
+      const recipeId = await ctx.db.insert("recipes", {
+        title: "Grandma's Cornbread",
+        story: "The family version.",
+        sourceText: "Bake it until the edges look right.",
+        status: "approved",
+        extractionStatus: "complete",
+        emoji: "🌽",
+        cookTimeMinutes: null,
+        createdAt: Date.now(),
+      });
+      return await ctx.db.insert("questions", {
+        recipeId,
+        prompt: "What do the edges look like?",
+        answer: null,
+        resolved: false,
+      });
+    });
+
+    await expect(
+      t.mutation(api.recipes.answerQuestion, {
+        questionId,
+        answer: "Deep golden brown.",
+      }),
+    ).rejects.toThrow("Approved recipes cannot accept");
   });
 });
