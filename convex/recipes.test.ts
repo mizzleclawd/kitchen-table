@@ -30,6 +30,12 @@ async function createRecipeWithQuestion() {
       answer: null,
       resolved: false,
     });
+    await ctx.db.insert("steps", {
+      recipeId,
+      body: "Bake it until the top looks right.",
+      minutes: null,
+      sortOrder: 0,
+    });
     return { questionId, recipeId };
   });
   return { ids, t };
@@ -91,6 +97,53 @@ describe("family clarification review", () => {
 
     const recipe = await t.run((ctx) => ctx.db.get(ids.recipeId));
     expect(recipe?.status).toBe("draft");
+  });
+
+  it("blocks approval when extraction produced no cooking steps", async () => {
+    const t = convexTest(schema, modules);
+    const recipeId = await t.run((ctx) =>
+      ctx.db.insert("recipes", {
+        title: "Grandma's Tea",
+        story: "The family version.",
+        sourceText: "Make it the way Grandma likes it.",
+        status: "draft",
+        extractionStatus: "complete",
+        emoji: "🫖",
+        cookTimeMinutes: null,
+        createdAt: Date.now(),
+      }),
+    );
+
+    await expect(t.mutation(api.recipes.approve, { recipeId })).rejects.toThrow(
+      "at least one cooking step",
+    );
+  });
+
+  it("seeds Cook Mode steps for Grandma's Chess Squares", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(api.recipes.seedDemo, {});
+
+    const seededRecipe = await t.run(async (ctx) => {
+      const recipe = await ctx.db
+        .query("recipes")
+        .withIndex("by_title", (q) => q.eq("title", "Grandma's Chess Squares"))
+        .first();
+      if (!recipe) return null;
+      const steps = await ctx.db
+        .query("steps")
+        .withIndex("by_recipe_id_and_sort_order", (q) =>
+          q.eq("recipeId", recipe._id),
+        )
+        .collect();
+      return { recipe, steps };
+    });
+
+    expect(seededRecipe?.recipe.extractionStatus).toBe("complete");
+    expect(seededRecipe?.steps.map((step) => step.body)).toEqual([
+      "Mix the top until it comes together.",
+      "Bake until the chocolate layer stays soft.",
+    ]);
   });
 
   it("preserves the family answer and then allows approval", async () => {

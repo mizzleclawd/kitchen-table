@@ -193,6 +193,9 @@ export const approve = mutation({
         "Answer every family question before approving this recipe.",
       );
     }
+    if (!existingStep) {
+      throw new Error("Add at least one cooking step before approval.");
+    }
     await ctx.db.patch(args.recipeId, { status: "approved" });
     return null;
   },
@@ -283,8 +286,9 @@ export const seedDemo = mutation({
         .first(),
     ]);
 
-    if (!chessSquares) {
-      const recipeId = await ctx.db.insert("recipes", {
+    let chessSquaresId = chessSquares?._id;
+    if (!chessSquaresId) {
+      chessSquaresId = await ctx.db.insert("recipes", {
         title: "Grandma's Chess Squares",
         story: "A family favorite worth getting in her own words.",
         sourceText:
@@ -303,19 +307,39 @@ export const seedDemo = mutation({
         "Flour",
       ].entries()) {
         await ctx.db.insert("ingredients", {
-          recipeId,
+          recipeId: chessSquaresId,
           name,
           amount: null,
           sortOrder,
         });
       }
       await ctx.db.insert("questions", {
-        recipeId,
+        recipeId: chessSquaresId,
         prompt:
           "Grandma, what oven temperature and bake time do you use for Chess Squares?",
         answer: null,
         resolved: false,
       });
+    }
+
+    const chessSquaresStep = await ctx.db
+      .query("steps")
+      .withIndex("by_recipe_id_and_sort_order", (q) =>
+        q.eq("recipeId", chessSquaresId),
+      )
+      .first();
+    if (!chessSquaresStep) {
+      for (const [sortOrder, body] of [
+        "Mix the top until it comes together.",
+        "Bake until the chocolate layer stays soft.",
+      ].entries()) {
+        await ctx.db.insert("steps", {
+          recipeId: chessSquaresId,
+          body,
+          minutes: null,
+          sortOrder,
+        });
+      }
     }
 
     if (!steak) {

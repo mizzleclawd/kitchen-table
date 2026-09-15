@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import {
@@ -52,14 +52,12 @@ export default function Home() {
   const featuredRecipe = recipes?.find(
     (recipe) => recipe.title === "Cubed Steak, Gravy & Rice",
   );
-  const needsSeed =
-    recipes !== undefined &&
-    !["Grandma's Chess Squares", "Cubed Steak, Gravy & Rice"].every((title) =>
-      recipes.some((recipe) => recipe.title === title),
-    );
+  const seeded = useRef(false);
   useEffect(() => {
-    if (needsSeed) void seed();
-  }, [needsSeed, seed]);
+    if (recipes === undefined || seeded.current) return;
+    seeded.current = true;
+    void seed();
+  }, [recipes, seed]);
   if (id) return <DetailView recipeId={id} onBack={() => setId(null)} />;
   async function submit(values: RecipeCaptureFormValues) {
     setSubmitting(true);
@@ -253,7 +251,7 @@ function DetailView({
         </p>
       </main>
     );
-  if (cooking) {
+  if (cooking && data.steps.length > 0) {
     const current = data.steps[step];
     return (
       <main className="min-h-screen bg-[#1e403a] px-6 py-8 text-[#fff8ed]">
@@ -303,6 +301,7 @@ function DetailView({
     (recipe.extractionStatus === undefined &&
       !data.steps.length &&
       !data.questions.length);
+  const hasCookingSteps = data.steps.length > 0;
   const openQuestions = data.questions.filter((question) => !question.resolved);
   const resolvedQuestions = data.questions.filter(
     (question) => question.resolved,
@@ -352,6 +351,11 @@ function DetailView({
             {reading ? (
               <p className="mt-7 rounded-xl bg-white/10 p-4 text-sm text-[#dcecdc]">
                 Still reading their words… Cook Mode will be ready in a moment.
+              </p>
+            ) : !hasCookingSteps ? (
+              <p className="mt-7 rounded-xl bg-white/10 p-4 text-sm text-[#dcecdc]">
+                This recipe needs at least one cooking step before Cook Mode is
+                ready.
               </p>
             ) : (
               <button onClick={() => setCooking(true)} className="primary mt-7">
