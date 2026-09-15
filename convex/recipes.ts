@@ -76,6 +76,7 @@ export const createDraft = mutation({
       story: args.story.trim(),
       sourceText: args.sourceText.trim(),
       status: "draft",
+      extractionStatus: "pending",
       emoji: "🍽️",
       cookTimeMinutes: null,
       createdAt: Date.now(),
@@ -116,7 +117,10 @@ export const applyExtraction = internalMutation({
         q.eq("recipeId", args.recipeId),
       )
       .first();
-    if (existingStep) return null;
+    if (existingStep) {
+      await ctx.db.patch(args.recipeId, { extractionStatus: "complete" });
+      return null;
+    }
 
     for (const [sortOrder, ingredient] of args.ingredients.entries()) {
       await ctx.db.insert("ingredients", {
@@ -145,6 +149,7 @@ export const applyExtraction = internalMutation({
         resolved: false,
       });
     }
+    await ctx.db.patch(args.recipeId, { extractionStatus: "complete" });
     return null;
   },
 });
@@ -155,7 +160,74 @@ export const approve = mutation({
   handler: async (ctx, args) => {
     const recipe = await ctx.db.get(args.recipeId);
     if (!recipe) throw new Error("Recipe not found.");
+    const [unresolvedQuestion, anyQuestion, existingStep] = await Promise.all([
+      ctx.db
+        .query("questions")
+        .withIndex("by_recipe_id_and_resolved", (q) =>
+          q.eq("recipeId", args.recipeId).eq("resolved", false),
+        )
+        .first(),
+      ctx.db
+        .query("questions")
+        .withIndex("by_recipe_id_and_resolved", (q) =>
+          q.eq("recipeId", args.recipeId),
+        )
+        .first(),
+      ctx.db
+        .query("steps")
+        .withIndex("by_recipe_id_and_sort_order", (q) =>
+          q.eq("recipeId", args.recipeId),
+        )
+        .first(),
+    ]);
+    const legacyReviewComplete =
+      recipe.extractionStatus === undefined &&
+      Boolean(anyQuestion || existingStep);
+    if (recipe.extractionStatus !== "complete" && !legacyReviewComplete) {
+      throw new Error(
+        "Wait until Kitchen Table finishes reviewing the original words.",
+      );
+    }
+    if (unresolvedQuestion) {
+      throw new Error(
+        "Answer every family question before approving this recipe.",
+      );
+    }
+    if (!existingStep) {
+      throw new Error("Add at least one cooking step before approval.");
+    }
     await ctx.db.patch(args.recipeId, { status: "approved" });
+    return null;
+  },
+});
+
+export const answerQuestion = mutation({
+  args: {
+    questionId: v.id("questions"),
+    answer: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const question = await ctx.db.get(args.questionId);
+    if (!question) throw new Error("Question not found.");
+    if (question.resolved) {
+      throw new Error("This family question already has an answer.");
+    }
+    const recipe = await ctx.db.get(question.recipeId);
+    if (!recipe) throw new Error("Recipe not found.");
+    if (recipe.status === "approved") {
+      throw new Error("Approved recipes cannot accept new family answers.");
+    }
+
+    const answer = args.answer.trim();
+    if (!answer) throw new Error("Add the family answer before saving.");
+    if (answer.length > 1_000)
+      throw new Error("Keep the family answer under 1,000 characters.");
+
+    await ctx.db.patch(args.questionId, {
+      answer,
+      resolved: true,
+    });
     return null;
   },
 });
@@ -214,13 +286,15 @@ export const seedDemo = mutation({
         .first(),
     ]);
 
-    if (!chessSquares) {
-      const recipeId = await ctx.db.insert("recipes", {
+    let chessSquaresId = chessSquares?._id;
+    if (!chessSquaresId) {
+      chessSquaresId = await ctx.db.insert("recipes", {
         title: "Grandma's Chess Squares",
         story: "A family favorite worth getting in her own words.",
         sourceText:
           "Grandma explained that the chocolate layer should stay soft and the top should be mixed until it comes together. Confirm the exact oven temperature and how long she bakes it.",
         status: "draft",
+        extractionStatus: "complete",
         emoji: "🍫",
         cookTimeMinutes: 45,
         createdAt: Date.now(),
@@ -233,19 +307,39 @@ export const seedDemo = mutation({
         "Flour",
       ].entries()) {
         await ctx.db.insert("ingredients", {
-          recipeId,
+          recipeId: chessSquaresId,
           name,
           amount: null,
           sortOrder,
         });
       }
       await ctx.db.insert("questions", {
-        recipeId,
+        recipeId: chessSquaresId,
         prompt:
           "Grandma, what oven temperature and bake time do you use for Chess Squares?",
         answer: null,
         resolved: false,
       });
+    }
+
+    const chessSquaresStep = await ctx.db
+      .query("steps")
+      .withIndex("by_recipe_id_and_sort_order", (q) =>
+        q.eq("recipeId", chessSquaresId),
+      )
+      .first();
+    if (!chessSquaresStep) {
+      for (const [sortOrder, body] of [
+        "Mix the top until it comes together.",
+        "Bake until the chocolate layer stays soft.",
+      ].entries()) {
+        await ctx.db.insert("steps", {
+          recipeId: chessSquaresId,
+          body,
+          minutes: null,
+          sortOrder,
+        });
+      }
     }
 
     if (!steak) {
@@ -256,6 +350,7 @@ export const seedDemo = mutation({
         sourceText:
           "Season and flour the cubed steak, brown it in a skillet, then make gravy from the pan. Serve it over rice. The key details are in the way the gravy looks, not a perfect measuring cup.",
         status: "approved",
+        extractionStatus: "complete",
         emoji: "🍲",
         cookTimeMinutes: 35,
         createdAt: Date.now() - 1,

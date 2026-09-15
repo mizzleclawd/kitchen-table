@@ -8,6 +8,9 @@ export default defineSchema({
     story: v.string(),
     sourceText: v.string(),
     status: v.union(v.literal("draft"), v.literal("approved")),
+    extractionStatus: v.optional(
+      v.union(v.literal("pending"), v.literal("complete")),
+    ),
     emoji: v.string(),
     cookTimeMinutes: v.union(v.number(), v.null()),
     createdAt: v.number(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import {
@@ -18,6 +18,7 @@ import {
   RecipeCaptureForm,
   type RecipeCaptureFormValues,
 } from "@/components/RecipeCaptureForm";
+import { QuestionAnswerForm } from "@/components/QuestionAnswerForm";
 
 type Recipe = {
   _id: string;
@@ -25,13 +26,19 @@ type Recipe = {
   story: string;
   sourceText: string;
   status: "draft" | "approved";
+  extractionStatus?: "pending" | "complete";
   emoji: string;
   cookTimeMinutes: number | null;
 };
 type Detail = {
   ingredients: { name: string; amount: string | null }[];
   steps: { body: string; minutes: number | null }[];
-  questions: { prompt: string; resolved: boolean }[];
+  questions: {
+    _id: string;
+    prompt: string;
+    answer: string | null;
+    resolved: boolean;
+  }[];
 };
 
 export default function Home() {
@@ -45,14 +52,12 @@ export default function Home() {
   const featuredRecipe = recipes?.find(
     (recipe) => recipe.title === "Cubed Steak, Gravy & Rice",
   );
-  const needsSeed =
-    recipes !== undefined &&
-    !["Grandma's Chess Squares", "Cubed Steak, Gravy & Rice"].every((title) =>
-      recipes.some((recipe) => recipe.title === title),
-    );
+  const seeded = useRef(false);
   useEffect(() => {
-    if (needsSeed) void seed();
-  }, [needsSeed, seed]);
+    if (recipes === undefined || seeded.current) return;
+    seeded.current = true;
+    void seed();
+  }, [recipes, seed]);
   if (id) return <DetailView recipeId={id} onBack={() => setId(null)} />;
   async function submit(values: RecipeCaptureFormValues) {
     setSubmitting(true);
@@ -223,6 +228,7 @@ function DetailView({
     | null
     | undefined;
   const approve = useMutation(api.recipes.approve);
+  const answerQuestion = useMutation(api.recipes.answerQuestion);
   const remove = useMutation(api.recipes.remove);
   const [cooking, setCooking] = useState(false);
   const [step, setStep] = useState(0);
@@ -245,7 +251,7 @@ function DetailView({
         </p>
       </main>
     );
-  if (cooking) {
+  if (cooking && data.steps.length > 0) {
     const current = data.steps[step];
     return (
       <main className="min-h-screen bg-[#1e403a] px-6 py-8 text-[#fff8ed]">
@@ -290,7 +296,16 @@ function DetailView({
     );
   }
   const recipe = data.recipe;
-  const reading = !data.steps.length;
+  const reading =
+    recipe.extractionStatus === "pending" ||
+    (recipe.extractionStatus === undefined &&
+      !data.steps.length &&
+      !data.questions.length);
+  const hasCookingSteps = data.steps.length > 0;
+  const openQuestions = data.questions.filter((question) => !question.resolved);
+  const resolvedQuestions = data.questions.filter(
+    (question) => question.resolved,
+  );
   return (
     <main className="min-h-screen bg-[#fbf5ea] px-5 py-8 text-[#2a221b] sm:px-8">
       <div className="mx-auto max-w-4xl">
@@ -337,21 +352,42 @@ function DetailView({
               <p className="mt-7 rounded-xl bg-white/10 p-4 text-sm text-[#dcecdc]">
                 Still reading their words… Cook Mode will be ready in a moment.
               </p>
+            ) : !hasCookingSteps ? (
+              <p className="mt-7 rounded-xl bg-white/10 p-4 text-sm text-[#dcecdc]">
+                This recipe needs at least one cooking step before Cook Mode is
+                ready.
+              </p>
             ) : (
               <button onClick={() => setCooking(true)} className="primary mt-7">
                 <Play size={17} fill="currentColor" />
                 Start Cook Mode
               </button>
             )}
-            {recipe.status === "draft" && (
-              <button
-                onClick={() => void approve({ recipeId: recipe._id as never })}
-                className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#dcecdc]"
-              >
-                <Check size={17} />
-                Mark family-approved
-              </button>
-            )}
+            {recipe.status === "draft" &&
+              (reading ? (
+                <p className="mt-4 rounded-xl bg-white/10 p-4 text-sm leading-6 text-[#dcecdc]">
+                  Family approval will unlock after Kitchen Table finishes
+                  reviewing the original words.
+                </p>
+              ) : openQuestions.length ? (
+                <p className="mt-4 rounded-xl bg-white/10 p-4 text-sm leading-6 text-[#dcecdc]">
+                  Answer{" "}
+                  {openQuestions.length === 1
+                    ? "the open question"
+                    : `all ${openQuestions.length} open questions`}{" "}
+                  before family approval.
+                </p>
+              ) : (
+                <button
+                  onClick={() =>
+                    void approve({ recipeId: recipe._id as never })
+                  }
+                  className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#dcecdc]"
+                >
+                  <Check size={17} />
+                  Mark family-approved
+                </button>
+              ))}
             <button
               onClick={() => {
                 if (
@@ -388,22 +424,44 @@ function DetailView({
           <div>
             <h2 className="font-serif text-3xl">Ask before it disappears</h2>
             <div className="mt-4 space-y-3">
-              {data.questions
-                .filter((q) => !q.resolved)
-                .map((q) => (
-                  <div
-                    key={q.prompt}
-                    className="rounded-2xl border border-[#efc580] bg-[#fff1d8] p-5 text-[#703a20]"
-                  >
-                    <Sparkles size={17} className="mb-2" />
-                    {q.prompt}
+              {openQuestions.map((q) => (
+                <div
+                  key={q._id}
+                  className="rounded-2xl border border-[#efc580] bg-[#fff1d8] p-5 text-[#703a20]"
+                >
+                  <Sparkles size={17} className="mb-2" />
+                  <p className="font-semibold leading-6">{q.prompt}</p>
+                  <div className="mt-4 border-t border-[#efc580] pt-1">
+                    <QuestionAnswerForm
+                      questionId={q._id}
+                      prompt={q.prompt}
+                      onSave={(questionId, answer) =>
+                        answerQuestion({
+                          questionId: questionId as never,
+                          answer,
+                        })
+                      }
+                    />
                   </div>
-                ))}
-              {!data.questions.some((q) => !q.resolved) && (
+                </div>
+              ))}
+              {!openQuestions.length && (
                 <p className="rounded-2xl bg-[#e0eee0] p-5 text-[#315c43]">
                   No open questions. This one is ready to pass down.
                 </p>
               )}
+              {resolvedQuestions.map((q) => (
+                <div
+                  key={q._id}
+                  className="rounded-2xl border border-[#c9dec9] bg-[#f2f8f1] p-5 text-[#315c43]"
+                >
+                  <p className="flex items-center gap-2 text-sm font-semibold">
+                    <Check size={16} /> Family answered
+                  </p>
+                  <p className="mt-3 text-sm font-semibold">{q.prompt}</p>
+                  <p className="mt-2 leading-6">{q.answer}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

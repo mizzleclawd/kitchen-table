@@ -36,3 +36,18 @@ checks. Do not upload personal family media until that phase is complete.
 Ship capture/review/cook before AI transcription. The user can verify the
 central value with the chess squares and cubed-steak recipes now; later model
 work improves the input path without changing the recipe ownership model.
+
+## 2026-09-15 — Family clarification review
+
+The current demo preserves source words and creates explicit questions for
+missing details, but the review loop stops there: questions cannot be answered,
+and a recipe can be marked family-approved while they remain unresolved.
+
+The smallest complete hackathon loop is: preserve the original words, surface
+uncertainty, let a person supply the missing detail, retain that answer beside
+the question, and permit approval only after every question is resolved.
+
+This phase needs no new service or dependency. Convex already owns recipes,
+questions, and approval, so the invariant belongs in the backend mutation as
+well as the interface. That prevents a stale or alternate client from bypassing
+family review.
